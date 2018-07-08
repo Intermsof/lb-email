@@ -92,9 +92,7 @@ function outputHTML(dirWithImages,dirToOutput){
         fs.writeFileSync(finalFileDir,generatedEmail);
         fs.unlinkSync(draftFileDir);
 
-        opn(finalFileDir).then((()=>{
-            process.exit();
-        }));
+        opn(finalFileDir);
     }
 
     const rl = readline.createInterface({
