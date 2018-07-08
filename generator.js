@@ -90,11 +90,11 @@ function outputHTML(dirWithImages,dirToOutput){
         genEmail(false);
         let finalFileDir = path.join(dirToOutput, `${fileName}.html`);
         fs.writeFileSync(finalFileDir,generatedEmail);
-        opn(finalFileDir);
-
         fs.unlinkSync(draftFileDir);
 
-        process.exit();
+        opn(finalFileDir).then((()=>{
+            process.exit();
+        }));
     }
 
     const rl = readline.createInterface({
