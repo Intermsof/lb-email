@@ -1,6 +1,6 @@
 {
-  "name": "lb",
-  "version": "1.0.0",
+  "name": "lbe",
+  "version": "1.0.1",
   "description": "cli for generating emails from images sliced from photoshop",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,7 @@
     "url": "git+https://github.com/Intermsof/lb-email.git"
   },
   "bin": {
-    "lb": "./scripts/lb.js"
+    "lbe": "./scripts/lbe.js"
   },
   "author": "Zhan Peng Pan",
   "license": "MIT",

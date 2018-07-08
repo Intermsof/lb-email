@@ -91,6 +91,9 @@ function outputHTML(dirWithImages,dirToOutput){
         let finalFileDir = path.join(dirToOutput, `${fileName}.html`);
         fs.writeFileSync(finalFileDir,generatedEmail);
         opn(finalFileDir);
+
+        fs.unlinkSync(draftFileDir);
+
         process.exit();
     }
 
