@@ -29,7 +29,7 @@ function outputHTML(dirWithImages,dirToOutput){
     let counter = 0;
 
     //completely synchronous
-    const genEmail = (isDraft)=>{
+    const genEmail = (isDraft,men)=>{
         let internalCounter = 0;
         files.forEach(file =>{
             let imageDir = path.join(dirWithImages,file);
@@ -51,8 +51,14 @@ function outputHTML(dirWithImages,dirToOutput){
                 draftEmail += createCollumn(imageDimensions.width,imageDimensions.height,"dummy",imageDir,isGif,imageNameNoExtension,internalCounter + 1,true);
             }
             else{
-                let fullLink = websiteRoot + links[internalCounter];
-                generatedEmail += createCollumn(imageDimensions.width, imageDimensions.height, alts[internalCounter], fullLink, isGif,imageNameNoExtension);
+                if(men){
+                    let fullLink = websiteRoot + links[internalCounter];
+                    generatedEmail += createCollumn(imageDimensions.width, imageDimensions.height, alts[internalCounter], fullLink, isGif,imageNameNoExtension);
+                }
+                else{
+                    let fullLink = websiteRoot + linksWomen[internalCounter];
+                    generatedEmail += createCollumn(imageDimensions.width, imageDimensions.height, altsWomen[internalCounter], fullLink, isGif,imageNameNoExtension);
+                }
             }
     
             if(currentRowPixels === 600){
@@ -74,25 +80,42 @@ function outputHTML(dirWithImages,dirToOutput){
         counter = internalCounter;
     }
 
-    genEmail(true); //generate the draft
+    genEmail(true,false); //generate the draft
 
     let draftFileDir = path.join(dirToOutput, '.draft.html');
     fs.writeFileSync(draftFileDir,draftEmail);
     opn(draftFileDir);
     
     var links = [];
+    var linksWomen = [];
     var alts = [];
+    var altsWomen = [];
+    let isDynamic = false;
 
     const createFinalEmail = function(){
         for(let i = 0; i < counter; ++i){
-            console.log(links[i], alts[i]);
+            console.log(`${('Image ' + i).green} : ${links[i]}, ${alts[i]}`);
         }
-        genEmail(false);
-        let finalFileDir = path.join(dirToOutput, `${fileName}.html`);
-        fs.writeFileSync(finalFileDir,generatedEmail);
-        fs.unlinkSync(draftFileDir);
 
-        opn(finalFileDir);
+        genEmail(false,true);//for men
+        let finalFileDirMen = path.join(dirToOutput, `${fileName}_men.html`);
+        fs.writeFileSync(finalFileDirMen,generatedEmail);
+        
+        if(isDynamic){
+            generatedEmail = '';//reset
+            genEmail(false,false);//for women
+            let finalFileDirWomen = path.join(dirToOutput, `${fileName}_women.html`);
+            fs.writeFileSync(finalFileDirWomen,generatedEmail);
+
+            opn(finalFileDirMen).then(()=>{
+                process.exit();
+            });
+        }
+        
+        opn(finalFileDirMen).then(()=>{
+            process.exit();
+        });
+        
     }
 
     const rl = readline.createInterface({
@@ -102,20 +125,59 @@ function outputHTML(dirWithImages,dirToOutput){
 
     var askForLink = (num)=>{
         rl.question(`${"link".green} for ${num + 1}: `, (answer)=>{
-            links[num] = answer;
-            askForAlt(num);
+            if(answer.indexOf(',') !== -1){
+                isDynamic = true;
+                const ourTwoLinks = answer.split(',');
+                const menLink = ourTwoLinks[0].trim();
+                const womenLink = ourTwoLinks[1].trim(); 
+
+                links[num] = menLink;
+                linksWomen[num] = womenLink;
+                askForAlt(num,true);
+            }
+            else{
+                links[num] = answer.trim();
+                linksWomen[num] = answer.trim();
+                askForAlt(num, false);
+            }
         });
     };
 
-    var askForAlt = (num)=>{
+    var askForAlt = (num, expectTwo)=>{
         rl.question(`${"alt-name".green} for ${num + 1}: `, (answer)=>{
-            alts[num] = answer;
-            if(num === counter - 1){
-                rl.close();
-                createFinalEmail();
+            if(expectTwo){
+                //verify that there are two alt names, else give a warning and ask again.
+                if(answer.indexOf(',') === -1){
+                    console.log(`${'Warning:'.red}: please enter alt-name for the men and women version separated by a ','`);
+                    askForAlt(num,expectTwo);
+                    return;
+                }
+                else{
+                    const ourTwoAlts = answer.split(',');
+                    const menAlt = ourTwoAlts[0];
+                    const womenAlt = ourTwoAlts[1];
+                    alts[num] = menAlt;
+                    altsWomen[num] = womenAlt;
+                    askForLink(num + 1);
+                    if(num === counter - 1){
+                        rl.close();
+                        createFinalEmail();
+                    }
+                    else{
+                        askForLink(num + 1);
+                    }
+                }
             }
             else{
-                askForLink(num + 1);
+                alts[num] = answer;
+                altsWomen[num] = answer;
+                if(num === counter - 1){
+                    rl.close();
+                    createFinalEmail();
+                }
+                else{
+                    askForLink(num + 1);
+                }
             }
         });
     }
