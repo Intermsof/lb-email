@@ -17,7 +17,7 @@ npm install -g lbe
 
 ### Usage
 
-The first time the tool is used, you must specify a path for the cli to look for your images. This will be the same path that the cli places the generated html file in. To do this, cd into the desired directory, and run
+The first time the tool is used, you must specify a path for the cli to look for your images. I will refer to this path as the 'workingdirectory'. This will be the same path that the cli places the generated html file in. To speify this directory, cd into the desired directory, and run
 ```
 lbe configure path
 ```
